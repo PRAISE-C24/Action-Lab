@@ -2,13 +2,21 @@ name: Node CI
 
 on:
   push:
+    branches:
+      - main
+
   pull_request:
+
   workflow_dispatch:
 
 jobs:
 
   test:
+    name: Run Tests
     runs-on: ubuntu-latest
+
+    env:
+      NODE_ENV: test
 
     steps:
       - name: Checkout repository
@@ -18,14 +26,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+
+      - name: Show GitHub context
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Runner OS: ${{ runner.os }}"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run tests
         run: npm test
 
+
   build:
+    name: Build Application
     needs: test
     runs-on: ubuntu-latest
 
@@ -37,34 +55,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build
-        run: |
-          mkdir build
-          cp app.js build/
-          cp package.json build/
+      - name: Build application
+        run: npm run build
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: application-build
-          path: build/
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download build
-        uses: actions/download-artifact@v5
-        with:
-          name: application-build
-
-      - name: Show build
-        run: ls -la
-
-      - name: Deploy
-        run: echo "Deploying application..."
+          name: node-build
+          path: dist/
