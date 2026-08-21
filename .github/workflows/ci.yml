@@ -44,7 +44,7 @@ jobs:
       - name: Build
         run: |
           mkdir build
-          cp does-not-exist.js build/
+          cp app.js build/
           cp package.json build/
 
       - name: Upload build artifact
