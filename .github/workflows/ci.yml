@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
+
   test:
     runs-on: ubuntu-latest
 
@@ -23,3 +24,47 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: |
+          mkdir build
+          cp app.js build/
+          cp package.json build/
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-build
+          path: build/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download build
+        uses: actions/download-artifact@v5
+        with:
+          name: application-build
+
+      - name: Show build
+        run: ls -la
+
+      - name: Deploy
+        run: echo "Deploying application..."
